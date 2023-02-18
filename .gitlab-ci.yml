@@ -28,10 +28,7 @@ before_script:
 build-nginx:
   stage: build
   script:
-    - docker image build
-      --file .docker/nginx/Dockerfile
-      --tag ${NGINX_IMAGE_TAG}
-      --tag ${CI_REGISTRY_IMAGE}/nginx:latest
+    - docker image build --file .docker/nginx/Dockerfile --tag ${NGINX_IMAGE_TAG} --tag ${CI_REGISTRY_IMAGE}/nginx:latest
     - docker image push ${NGINX_IMAGE_TAG}
     - docker image push ${CI_REGISTRY_IMAGE}/nginx:latest
 
@@ -39,9 +36,6 @@ build-nginx:
 build-php:
   stage: build
   script:
-    - docker image build
-      --file .docker/nginx/Dockerfile
-      --tag ${PHP_IMAGE_TAG}
-      --tag ${CI_REGISTRY_IMAGE}:latest
+    - docker image build --file .docker/nginx/Dockerfile --tag ${PHP_IMAGE_TAG} --tag ${CI_REGISTRY_IMAGE}:latest
     - docker image push ${PHP_IMAGE_TAG}
     - docker image push ${CI_REGISTRY_IMAGE}:latest
