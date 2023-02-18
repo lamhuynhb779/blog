@@ -1,0 +1,45 @@
+version: '3'
+services:
+    blogs-nginx:
+        build: ./docker/nginx
+        command: nginx -g "daemon off;"
+        links:
+            - blogs-app
+        ports:
+            - '8000:80'
+        volumes:
+            - '.:/var/www/html'
+    blogs-app:
+        build: ./docker/php
+        volumes:
+            - '.:/var/www/html'
+        working_dir: /var/www/html
+    blogs-mysql:
+        image: 'mysql:5.7'
+        ports:
+            - '3310:3306'
+        environment:
+            MYSQL_ROOT_PASSWORD: "${DB_PASSWORD}"
+            MYSQL_DATABASE: "${DB_DATABASE}"
+            MYSQL_USER: "${DB_USERNAME}"
+            MYSQL_PASSWORD: "${DB_PASSWORD}"
+        volumes:
+            - 'blogsmysql:/var/lib/mysql'
+            - './docker/mysql/conf.d:/etc/mysql/conf.d'
+            - './docker/mysql/logs:/var/log/mysql'
+            - './docker/mysql/docker-entrypoint-initdb.d:/docker-entrypoint-initdb.d'
+    blogs-redis:
+        image: 'redis:alpine'
+        volumes:
+            - 'blogsredis:/data'
+        ports:
+            - '8002:6379'
+networks:
+    default:
+        external:
+            name: blogs_network
+volumes:
+    blogsmysql:
+        driver: local
+    blogsredis:
+        driver: local
