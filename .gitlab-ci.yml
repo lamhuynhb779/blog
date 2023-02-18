@@ -1,0 +1,40 @@
+# do not use "latest" here, if you want this to work in the future
+image: docker:19
+
+services:
+  - docker:dind
+
+variables:
+  # ENABLE DOCKER BUILDKIT
+  DOCKER_BUILDKIT: 1
+  DOCKER_TLS_CERTDIR: "/certs"
+  DOMAIN: futurofficevalencia.es
+  PHP_IMAGE_TAG: ${CI_REGISTRY_IMAGE}:${CI_COMMIT_SHORT_SHA}
+  NGINX_IMAGE_TAG: ${CI_REGISTRY_IMAGE}/nginx:${CI_COMMIT_SHORT_SHA}
+  WEBROOT: /home/${SSH_USER}
+  STORAGE_PATH: ${WEBROOT}/storage
+  RELEASES_PATH: ${WEBROOT}/releases
+  CURRENT_PATH: ${WEBROOT}/current
+
+stages:
+  - build
+
+# ROOT LEVEL SCRIPT
+before_script:
+  - docker version
+  - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
+
+# JOB NAME
+build:
+  stage: build
+  script:
+    # nginx
+    - docker pull ${CI_REGISTRY_IMAGE}/nginx:latest || true
+    - docker build --cache-from ${CI_REGISTRY_IMAGE}/nginx:latest --tag ${NGINX_IMAGE_TAG} --tag ${CI_REGISTRY_IMAGE}/nginx:latest .
+    - docker push ${NGINX_IMAGE_TAG}
+    - docker push ${CI_REGISTRY_IMAGE}/nginx:latest
+    # php
+    - docker pull ${CI_REGISTRY_IMAGE}:latest || true
+    - docker build --cache-from $CI_REGISTRY_IMAGE:latest --tag ${PHP_IMAGE_TAG} --tag ${CI_REGISTRY_IMAGE}:latest .
+    - docker push ${PHP_IMAGE_TAG}
+    - docker push ${CI_REGISTRY_IMAGE}:latest
